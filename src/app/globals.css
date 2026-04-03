@@ -1,35 +1,129 @@
 @import "tailwindcss";
 
+/* ============================================
+   BlockScore Design Tokens
+   Dark data-journalism aesthetic
+   Sharp borders, dense but navigable
+   ============================================ */
+
 :root {
-  --background: #111111;
-  --foreground: #fafafa;
-  --surface: #1a1a1a;
-  --border: #2a2a2a;
-  --muted: #a1a1aa;
+  /* Backgrounds */
+  --bg: #111111;
+  --bg-surface: #1a1a1a;
+  --bg-surface-high: #242424;
+  --bg-surface-hover: #2a2a2a;
+
+  /* Text */
+  --text: #e5e2e1;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.14);
+
+  /* Score colors (map + UI) */
   --score-green: #22c55e;
   --score-yellow: #eab308;
   --score-orange: #f97316;
   --score-red: #ef4444;
+  --score-null: #525252;
+
+  /* Section accents (5-dimension system) */
+  --accent-noise: #a855f7;
+  --accent-construction: #f97316;
+  --accent-food: #22c55e;
+  --accent-transit: #3b82f6;
+  --accent-walk: #06b6d4;
+
+  /* Functional */
   --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+
+  /* Radii: 0 for data journalism sharpness */
+  --radius: 0px;
+  --radius-sm: 0px;
+  --radius-lg: 0px;
+
+  /* Subway pill radius (exception: MTA circles) */
+  --radius-pill: 9999px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
+  --color-bg: var(--bg);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-surface-high: var(--bg-surface-high);
+  --color-bg-surface-hover: var(--bg-surface-hover);
+
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+
   --color-border: var(--border);
-  --color-muted: var(--muted);
+  --color-border-hover: var(--border-hover);
+
   --color-score-green: var(--score-green);
   --color-score-yellow: var(--score-yellow);
   --color-score-orange: var(--score-orange);
   --color-score-red: var(--score-red);
-  --font-sans: var(--font-geist-sans);
+  --color-score-null: var(--score-null);
+
+  --color-accent-noise: var(--accent-noise);
+  --color-accent-construction: var(--accent-construction);
+  --color-accent-food: var(--accent-food);
+  --color-accent-transit: var(--accent-transit);
+  --color-accent-walk: var(--accent-walk);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+
+  --font-sans: var(--font-space-grotesk);
   --font-mono: var(--font-geist-mono);
 }
 
+/* Base styles */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Selection */
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: #fff;
+}
+
+/* Scrollbar (dark, minimal) */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-surface-high);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-surface-hover);
+}
+
+/* Score badge utility */
+.score-badge {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Section accent borders (left-edge treatment) */
+.section-noise { border-left: 2px solid var(--accent-noise); }
+.section-construction { border-left: 2px solid var(--accent-construction); }
+.section-food { border-left: 2px solid var(--accent-food); }
+.section-transit { border-left: 2px solid var(--accent-transit); }
+.section-walk { border-left: 2px solid var(--accent-walk); }
