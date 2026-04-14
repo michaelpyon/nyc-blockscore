@@ -16,7 +16,7 @@
   /* Text */
   --text: #e5e2e1;
   --text-muted: #94a3b8;
-  --text-subtle: #64748b;
+  --text-subtle: #8494a7;
 
   /* Borders */
   --border: rgba(255, 255, 255, 0.08);
@@ -112,6 +112,16 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--bg-surface-hover);
+}
+
+/* Focus-visible: accessible keyboard navigation */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Score badge utility */

@@ -21,7 +21,7 @@ export default function ScoreBar({
       </span>
       <div className="flex-1 h-1.5 bg-bg-surface-high overflow-hidden">
         <div
-          className="h-full transition-all duration-500"
+          className="h-full transition-[width] duration-500"
           style={{ width, backgroundColor: color }}
         />
       </div>

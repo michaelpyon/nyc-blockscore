@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BlockScore — NYC Block Intelligence",
+  title: "BlockScore: NYC Block Intelligence",
   description:
     "Block-level scores across noise, transit, food, walkability, and construction for Brooklyn and Manhattan.",
 };

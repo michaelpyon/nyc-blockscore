@@ -28,7 +28,7 @@ export default async function HomePage() {
           <div className="flex gap-2">
             <Link
               href="/compare"
-              className="text-xs px-3 py-1.5 bg-bg-surface-high text-text-muted hover:bg-bg-surface-hover hover:text-text transition-colors"
+              className="text-xs px-3 py-1.5 min-h-[44px] inline-flex items-center bg-bg-surface-high text-text-muted hover:bg-bg-surface-hover hover:text-text transition-colors"
             >
               Compare
             </Link>
@@ -48,7 +48,7 @@ export default async function HomePage() {
             <Link
               key={block.id}
               href={`/block/${block.id}`}
-              className="group block p-4 bg-bg-surface border border-border hover:border-border-hover transition-all"
+              className="group block p-4 bg-bg-surface border border-border hover:border-border-hover transition-[border-color] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="min-w-0 flex-1">
