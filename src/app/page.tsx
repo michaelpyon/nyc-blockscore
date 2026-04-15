@@ -108,6 +108,17 @@ export default async function HomePage() {
           </div>
         )}
       </main>
+
+      <footer className="border-t border-border py-6 mt-8">
+        <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span className="text-[10px] font-mono text-text-subtle tracking-wide">
+            BlockScore NYC · Demo data
+          </span>
+          <span className="text-[10px] font-mono text-text-subtle">
+            Built by Michael Pyon
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }

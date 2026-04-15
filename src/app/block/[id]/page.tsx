@@ -363,6 +363,17 @@ export default async function BlockDetailPage({
           </section>
         )}
       </main>
+
+      <footer className="border-t border-border py-6 mt-8">
+        <div className="max-w-3xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span className="text-[10px] font-mono text-text-subtle tracking-wide">
+            BlockScore NYC
+          </span>
+          <span className="text-[10px] font-mono text-text-subtle">
+            Built by Michael Pyon
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
