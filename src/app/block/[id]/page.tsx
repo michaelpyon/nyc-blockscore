@@ -44,7 +44,7 @@ export default async function BlockDetailPage({
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link
             href="/"
-            className="text-text-muted hover:text-text transition-colors"
+            className="text-text-muted hover:text-text transition-colors p-2 -ml-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <svg
               width="20"
