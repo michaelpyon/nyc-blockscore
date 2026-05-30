@@ -17,8 +17,14 @@ const DIMENSION_ACCENTS: Record<string, string> = {
 // navigable link; the Compare toggle sits outside the link so a tap selects
 // without triggering navigation. A sticky bar links to the compare page with
 // the chosen ids.
+//
+// The neighborhood filter narrows 52 sample blocks to the area a visitor cares
+// about. The "All" option restores the full list. Selection state is kept
+// across filter changes so a renter can build a compare set from multiple
+// neighborhoods without losing picks.
 export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
   const [selected, setSelected] = useState<string[]>([]);
+  const [neighborhood, setNeighborhood] = useState<string>("All");
 
   function toggle(id: string) {
     setSelected((prev) =>
@@ -26,12 +32,63 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
     );
   }
 
+  const neighborhoods = Array.from(
+    new Set(blocks.map((b) => b.neighborhood))
+  ).sort();
+
+  const visible =
+    neighborhood === "All"
+      ? blocks
+      : blocks.filter((b) => b.neighborhood === neighborhood);
+
   const compareHref = `/compare?blocks=${selected.join(",")}`;
 
   return (
     <>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <label
+          htmlFor="neighborhood-filter"
+          className="text-xs font-medium uppercase tracking-wider text-text-subtle"
+        >
+          Neighborhood
+        </label>
+        <select
+          id="neighborhood-filter"
+          value={neighborhood}
+          onChange={(e) => setNeighborhood(e.target.value)}
+          className="text-xs px-3 py-2 min-h-[44px] bg-bg-surface-high border border-border text-text hover:border-border-hover focus:outline-none focus:border-accent transition-colors"
+        >
+          <option value="All">All ({blocks.length})</option>
+          {neighborhoods.map((n) => {
+            const count = blocks.filter((b) => b.neighborhood === n).length;
+            return (
+              <option key={n} value={n}>
+                {n} ({count})
+              </option>
+            );
+          })}
+        </select>
+        {neighborhood !== "All" && (
+          <button
+            type="button"
+            onClick={() => setNeighborhood("All")}
+            className="text-xs text-text-muted hover:text-text min-h-[44px] px-2"
+          >
+            Clear
+          </button>
+        )}
+        <span className="ml-auto text-xs text-text-subtle">
+          {visible.length} {visible.length === 1 ? "block" : "blocks"}
+        </span>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {blocks.map((block) => {
+        {visible.length === 0 && (
+          <div className="col-span-full text-center py-12 text-text-subtle text-sm">
+            No sample blocks in {neighborhood}.
+          </div>
+        )}
+        {visible.map((block) => {
           const isSelected = selected.includes(block.id);
           return (
             <div

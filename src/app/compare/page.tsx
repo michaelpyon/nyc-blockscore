@@ -167,14 +167,20 @@ function CompareContent() {
             <p className="text-text-muted mb-2">
               No blocks selected to compare.
             </p>
-            <p className="text-sm text-text-subtle">
-              Add blocks to compare from the{" "}
+            <p className="text-sm text-text-subtle mb-6">
+              Pick 2 or 3 blocks on the{" "}
               <Link href="/" className="text-accent hover:text-accent-hover">
                 home page
-              </Link>
-              .
+              </Link>{" "}
+              by tapping Compare on each card, then come back.
             </p>
-            <p className="text-xs text-text-muted mt-4 font-mono">
+            <Link
+              href="/compare?blocks=wburg-bedford-n6-n7,gpoint-franklin-freeman"
+              className="inline-flex items-center min-h-[44px] px-4 py-2.5 bg-bg-surface-high text-text-muted hover:bg-bg-surface-hover hover:text-text transition-colors text-sm"
+            >
+              See a sample comparison
+            </Link>
+            <p className="text-xs text-text-subtle mt-4 font-mono">
               Usage: /compare?blocks=id1,id2,id3
             </p>
           </div>

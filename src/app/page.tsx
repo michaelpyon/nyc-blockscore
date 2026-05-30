@@ -48,6 +48,52 @@ export default async function HomePage() {
             </p>
           </div>
         )}
+
+        {/* Methodology strip: short, calm, answers the 3 questions a skeptic
+            asks before they trust a score (what, how, why sample). */}
+        <section
+          aria-labelledby="methodology-heading"
+          className="mt-10 border-t border-border pt-6"
+        >
+          <h2
+            id="methodology-heading"
+            className="text-xs font-semibold uppercase tracking-wider text-text-subtle mb-3"
+          >
+            How it works
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="bg-bg-surface border border-border p-4">
+              <p className="text-xs font-medium text-text mb-1">
+                What gets scored
+              </p>
+              <p className="text-xs text-text-subtle leading-relaxed">
+                Each block is rated 0 to 100 across 5 dimensions: noise,
+                transit, food, walkability, and construction. The overall
+                grade rolls them up A to D.
+              </p>
+            </div>
+            <div className="bg-bg-surface border border-border p-4">
+              <p className="text-xs font-medium text-text mb-1">
+                How to use it
+              </p>
+              <p className="text-xs text-text-subtle leading-relaxed">
+                Tap Compare on 2 or 3 blocks, then open the compare view to
+                see a side by side with a winner and the dimension that
+                breaks the tie.
+              </p>
+            </div>
+            <div className="bg-bg-surface border border-border p-4">
+              <p className="text-xs font-medium text-text mb-1">
+                Why sample data
+              </p>
+              <p className="text-xs text-text-subtle leading-relaxed">
+                The 52 blocks here are illustrative, not live civic feeds.
+                Use this to feel the shape of a tradeoff, not to evaluate a
+                real lease.
+              </p>
+            </div>
+          </div>
+        </section>
       </main>
 
       <footer className="border-t border-border py-6 mt-8">
