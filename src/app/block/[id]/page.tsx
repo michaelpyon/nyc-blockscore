@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBlockDetail, getBlockSummaries } from "@/lib/blocks";
-import { getScoreColor, getScoreLabel, SUBWAY_LINES } from "@/types";
+import {
+  getScoreColor,
+  getScoreGrade,
+  getScoreLabel,
+  SUBWAY_LINES,
+} from "@/types";
 import type { ScoreDimension } from "@/types";
 import ScoreBar from "@/components/ScoreBar";
+import ScoreRing from "@/components/ScoreRing";
 
 const DIMENSION_ACCENTS: Record<ScoreDimension, string> = {
   noise: "var(--accent-noise)",
@@ -20,6 +27,53 @@ export const dynamicParams = true;
 export async function generateStaticParams() {
   const blocks = await getBlockSummaries();
   return blocks.map((b) => ({ id: b.id }));
+}
+
+// Per-block metadata so a pasted link previews this block's real scorecard
+// instead of the generic root splash. The opengraph-image route in this
+// folder supplies the matching per-block image automatically.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  let block;
+  try {
+    block = await getBlockDetail(id);
+  } catch {
+    block = null;
+  }
+
+  if (!block) {
+    return {
+      title: "Block not found: BlockScore NYC",
+      description: "This block could not be found.",
+    };
+  }
+
+  const grade = getScoreGrade(block.blockScore);
+  const word = getScoreLabel(block.blockScore);
+  const title = `${block.streetName} scored ${block.blockScore ?? "--"}: BlockScore NYC`;
+  const description = `${block.streetName} (${block.fromCross} to ${block.toCross}, ${block.neighborhood}) earns a ${grade}, rated ${word.toLowerCase()} across noise, transit, food, walkability, and construction. Sample data.`;
+  const url = `/block/${block.id}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
 }
 
 export default async function BlockDetailPage({
@@ -109,21 +163,39 @@ export default async function BlockDetailPage({
           </p>
         </div>
 
-        {/* Overall score */}
-        <section className="bg-bg-surface border border-border p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-text">Block Score</h2>
-            <span
-              className="text-xs font-medium px-2 py-0.5"
-              style={{
-                backgroundColor: getScoreColor(block.blockScore) + "20",
-                color: getScoreColor(block.blockScore),
-              }}
-            >
-              {getScoreLabel(block.blockScore)}
-            </span>
+        {/* Overall score hero: the verdict reads in one glance */}
+        <section className="bg-bg-surface border border-border p-6 sm:p-8">
+          <div className="flex flex-col items-center text-center">
+            <p className="text-xs font-medium uppercase tracking-wider text-text-subtle mb-4">
+              Overall Block Score
+            </p>
+            <ScoreRing score={block.blockScore} size={160} strokeWidth={14} />
+            <div className="mt-5 flex items-center gap-2.5">
+              <span
+                className="flex items-center justify-center w-10 h-10 text-xl font-bold font-mono rounded"
+                style={{
+                  backgroundColor: getScoreColor(block.blockScore) + "22",
+                  color: getScoreColor(block.blockScore),
+                }}
+              >
+                {getScoreGrade(block.blockScore)}
+              </span>
+              <span
+                className="text-2xl font-bold"
+                style={{ color: getScoreColor(block.blockScore) }}
+              >
+                {getScoreLabel(block.blockScore)}
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-text-subtle max-w-sm">
+              {block.streetName} from {block.fromCross} to {block.toCross}
+            </p>
           </div>
-          <div className="space-y-2.5">
+
+          <div className="mt-7 pt-6 border-t border-border space-y-2.5">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-text-subtle mb-3">
+              By Dimension
+            </h2>
             {dimensions.map((dim) => (
               <ScoreBar
                 key={dim}
@@ -143,7 +215,7 @@ export default async function BlockDetailPage({
             </h2>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <p className="text-2xl font-bold font-mono text-text">
+                <p className="text-xl font-bold font-mono text-text">
                   {block.noise.totalComplaints}
                 </p>
                 <p className="text-xs text-text-subtle">
@@ -220,13 +292,13 @@ export default async function BlockDetailPage({
             </div>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <p className="text-2xl font-bold font-mono text-text">
+                <p className="text-xl font-bold font-mono text-text">
                   {block.construction.activePermits}
                 </p>
                 <p className="text-xs text-text-subtle">active permits</p>
               </div>
               <div>
-                <p className="text-2xl font-bold font-mono text-text">
+                <p className="text-xl font-bold font-mono text-text">
                   {block.construction.completedPermits24mo}
                 </p>
                 <p className="text-xs text-text-subtle">recently completed</p>
@@ -258,19 +330,19 @@ export default async function BlockDetailPage({
             </h2>
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
-                <p className="text-2xl font-bold font-mono text-text">
+                <p className="text-xl font-bold font-mono text-text">
                   {block.food.restaurantCount}
                 </p>
                 <p className="text-xs text-text-subtle">restaurants</p>
               </div>
               <div>
-                <p className="text-2xl font-bold font-mono text-text">
+                <p className="text-xl font-bold font-mono text-text">
                   {block.food.recentOpenings}
                 </p>
                 <p className="text-xs text-text-subtle">recently opened</p>
               </div>
               <div>
-                <p className="text-2xl font-bold font-mono text-text">
+                <p className="text-xl font-bold font-mono text-text">
                   {block.food.cuisineDiversityScore}
                 </p>
                 <p className="text-xs text-text-subtle">diversity</p>
@@ -309,19 +381,19 @@ export default async function BlockDetailPage({
             </h2>
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
-                <p className="text-2xl font-bold font-mono text-text">
+                <p className="text-xl font-bold font-mono text-text">
                   {block.transit.walkScore}
                 </p>
                 <p className="text-xs text-text-subtle">Walk Score</p>
               </div>
               <div>
-                <p className="text-2xl font-bold font-mono text-text">
+                <p className="text-xl font-bold font-mono text-text">
                   {block.transit.transitScore}
                 </p>
                 <p className="text-xs text-text-subtle">Transit Score</p>
               </div>
               <div>
-                <p className="text-2xl font-bold font-mono text-text">
+                <p className="text-xl font-bold font-mono text-text">
                   {block.transit.bikeScore}
                 </p>
                 <p className="text-xs text-text-subtle">Bike Score</p>
@@ -387,7 +459,7 @@ export default async function BlockDetailPage({
               Walkability
             </h2>
             <div className="flex items-center gap-4 mb-2">
-              <p className="text-3xl font-bold font-mono text-text">
+              <p className="text-xl font-bold font-mono text-text">
                 {block.walkability.walkScore}
               </p>
               <p className="text-sm text-text-subtle">

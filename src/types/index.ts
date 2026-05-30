@@ -195,3 +195,13 @@ export function getScoreLabel(score: number | null): string {
   if (score >= 50) return "Fair";
   return "Poor";
 }
+
+// Letter grade keyed off the same thresholds as the color and word label,
+// so the hero ring can show a single-glance verdict (A through D).
+export function getScoreGrade(score: number | null): string {
+  if (score === null) return "?";
+  if (score >= 85) return "A";
+  if (score >= 70) return "B";
+  if (score >= 50) return "C";
+  return "D";
+}

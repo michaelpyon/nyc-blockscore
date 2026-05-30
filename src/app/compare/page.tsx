@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ScoreBar from "@/components/ScoreBar";
 import type { BlockDetail, ScoreDimension } from "@/types";
-import { getScoreColor } from "@/types";
+import { getScoreColor, getScoreGrade, getScoreLabel } from "@/types";
 
 const DIMENSION_ACCENTS: Record<ScoreDimension, string> = {
   noise: "var(--accent-noise)",
@@ -14,6 +14,76 @@ const DIMENSION_ACCENTS: Record<ScoreDimension, string> = {
   walk: "var(--accent-walk)",
   construction: "var(--accent-construction)",
 };
+
+// Phrases that describe what a higher score on each dimension means, used to
+// name the biggest differentiator in the winner rationale.
+const DIMENSION_STRENGTH: Record<ScoreDimension, string> = {
+  noise: "quieter",
+  transit: "better transit",
+  food: "a stronger food scene",
+  walk: "more walkable",
+  construction: "less construction",
+};
+
+interface Verdict {
+  winner: BlockDetail;
+  rationale: string;
+}
+
+// Picks the highest overall block and explains the win by naming the single
+// dimension where it most outscores the runner up. Honest about sample data.
+function getVerdict(blocks: BlockDetail[]): Verdict | null {
+  if (blocks.length < 2) return null;
+
+  const ranked = [...blocks].sort(
+    (a, b) => (b.blockScore ?? -1) - (a.blockScore ?? -1)
+  );
+  const winner = ranked[0];
+  const runnerUp = ranked[1];
+
+  if (winner.blockScore === null) return null;
+
+  if (winner.blockScore === runnerUp.blockScore) {
+    return {
+      winner,
+      rationale: `${winner.streetName} and ${runnerUp.streetName} tie on the overall score, so it comes down to the dimensions you weigh most.`,
+    };
+  }
+
+  const dims: ScoreDimension[] = [
+    "noise",
+    "transit",
+    "food",
+    "walk",
+    "construction",
+  ];
+
+  let topDim: ScoreDimension | null = null;
+  let topGap = -Infinity;
+  for (const dim of dims) {
+    const w = winner.scores[dim];
+    const r = runnerUp.scores[dim];
+    if (w === null || r === null) continue;
+    const gap = w - r;
+    if (gap > topGap) {
+      topGap = gap;
+      topDim = dim;
+    }
+  }
+
+  const lead = winner.blockScore - (runnerUp.blockScore ?? 0);
+  const reason =
+    topDim && topGap > 0
+      ? ` It leads on ${DIMENSION_STRENGTH[topDim]}.`
+      : "";
+
+  return {
+    winner,
+    rationale: `${winner.streetName} wins by ${lead} ${
+      lead === 1 ? "point" : "points"
+    } over ${runnerUp.streetName}.${reason}`,
+  };
+}
 
 function CompareContent() {
   const searchParams = useSearchParams();
@@ -56,6 +126,8 @@ function CompareContent() {
     "walk",
     "construction",
   ];
+
+  const verdict = getVerdict(blocks);
 
   return (
     <div className="min-h-screen bg-bg">
@@ -108,6 +180,52 @@ function CompareContent() {
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Winner verdict */}
+            {verdict && (
+              <div
+                className="border p-5"
+                style={{
+                  borderColor: getScoreColor(verdict.winner.blockScore),
+                  backgroundColor:
+                    getScoreColor(verdict.winner.blockScore) + "12",
+                }}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span
+                    className="text-[10px] font-semibold uppercase tracking-wider px-2 py-1"
+                    style={{
+                      backgroundColor: getScoreColor(verdict.winner.blockScore),
+                      color: "var(--color-bg)",
+                    }}
+                  >
+                    Winner
+                  </span>
+                  <span
+                    className="text-lg font-bold"
+                    style={{ color: getScoreColor(verdict.winner.blockScore) }}
+                  >
+                    {verdict.winner.streetName}
+                  </span>
+                  <span
+                    className="ml-auto font-mono font-bold text-2xl"
+                    style={{ color: getScoreColor(verdict.winner.blockScore) }}
+                  >
+                    {verdict.winner.blockScore ?? "--"}
+                    <span className="text-xs text-text-subtle ml-1.5">
+                      {getScoreGrade(verdict.winner.blockScore)} ·{" "}
+                      {getScoreLabel(verdict.winner.blockScore)}
+                    </span>
+                  </span>
+                </div>
+                <p className="text-sm text-text-muted leading-relaxed">
+                  {verdict.rationale}
+                </p>
+                <p className="text-[10px] text-text-subtle mt-2">
+                  Based on sample data, not live civic measurements.
+                </p>
+              </div>
+            )}
+
             {/* Header row */}
             <div
               className="grid gap-4"
