@@ -17,20 +17,25 @@ const DIMENSION_ACCENTS: Record<ScoreDimension, string> = {
 
 function CompareContent() {
   const searchParams = useSearchParams();
-  const blockIds = searchParams.get("blocks")?.split(",").filter(Boolean) || [];
+  const blocksParam = searchParams.get("blocks") || "";
+  const blockIds = blocksParam.split(",").filter(Boolean);
   const [blocks, setBlocks] = useState<BlockDetail[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const ids = blocksParam.split(",").filter(Boolean);
+
     async function load() {
-      if (blockIds.length === 0) {
+      if (ids.length === 0) {
+        setBlocks([]);
         setLoading(false);
         return;
       }
 
+      setLoading(true);
       try {
         const res = await fetch(
-          `/api/blocks?ids=${blockIds.join(",")}`
+          `/api/blocks?ids=${encodeURIComponent(ids.join(","))}`
         );
         if (res.ok) {
           const data = await res.json();
@@ -42,7 +47,7 @@ function CompareContent() {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [blocksParam]);
 
   const dimensions: ScoreDimension[] = [
     "noise",
@@ -76,6 +81,11 @@ function CompareContent() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
+        <div className="mb-4">
+          <span className="text-[10px] font-medium px-2 py-1 bg-bg-surface-high text-text-muted">
+            Sample data for demonstration. Not live civic data.
+          </span>
+        </div>
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="w-6 h-6 border-2 border-text-subtle border-t-transparent rounded-full animate-spin" />

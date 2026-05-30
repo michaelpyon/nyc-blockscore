@@ -37,10 +37,13 @@ export default async function HomePage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-text-subtle">
             {blocks.length} blocks across Brooklyn and Manhattan
           </p>
+          <span className="text-[10px] font-medium px-2 py-1 bg-bg-surface-high text-text-muted">
+            Sample data for demonstration. Not live civic data.
+          </span>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

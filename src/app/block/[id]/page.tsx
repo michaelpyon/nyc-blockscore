@@ -13,6 +13,10 @@ const DIMENSION_ACCENTS: Record<ScoreDimension, string> = {
   construction: "var(--accent-construction)",
 };
 
+// Render ids beyond the prebuilt set on demand so unknown ids resolve to a
+// 404 via notFound() rather than crashing the route.
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
   const blocks = await getBlockSummaries();
   return blocks.map((b) => ({ id: b.id }));
@@ -24,7 +28,14 @@ export default async function BlockDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const block = await getBlockDetail(id);
+
+  let block;
+  try {
+    block = await getBlockDetail(id);
+  } catch {
+    // Never surface a 500 for a bad id; fall through to the 404 page.
+    block = null;
+  }
 
   if (!block) {
     notFound();
@@ -75,6 +86,29 @@ export default async function BlockDetailPage({
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+        {/* Sample data notice */}
+        <div className="flex items-start gap-2 bg-bg-surface-high border border-border px-3 py-2.5 text-text-muted">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="shrink-0 mt-0.5"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <p className="text-xs leading-relaxed">
+            Sample data for demonstration. These figures are illustrative and
+            are not live civic measurements. Do not use them to evaluate a real
+            address.
+          </p>
+        </div>
+
         {/* Overall score */}
         <section className="bg-bg-surface border border-border p-5">
           <div className="flex items-center justify-between mb-4">
@@ -113,7 +147,7 @@ export default async function BlockDetailPage({
                   {block.noise.totalComplaints}
                 </p>
                 <p className="text-xs text-text-subtle">
-                  complaints (12-month)
+                  sample complaints
                 </p>
               </div>
               <div>
@@ -128,7 +162,7 @@ export default async function BlockDetailPage({
                   {block.noise.trend}
                 </p>
                 <p className="text-xs text-text-subtle">
-                  vs prior year ({block.noise.priorYearTotal})
+                  sample trend (prior {block.noise.priorYearTotal})
                 </p>
               </div>
             </div>
@@ -195,7 +229,7 @@ export default async function BlockDetailPage({
                 <p className="text-2xl font-bold font-mono text-text">
                   {block.construction.completedPermits24mo}
                 </p>
-                <p className="text-xs text-text-subtle">completed (24mo)</p>
+                <p className="text-xs text-text-subtle">recently completed</p>
               </div>
             </div>
             <div className="space-y-1.5">
@@ -233,7 +267,7 @@ export default async function BlockDetailPage({
                 <p className="text-2xl font-bold font-mono text-text">
                   {block.food.recentOpenings}
                 </p>
-                <p className="text-xs text-text-subtle">new (6mo)</p>
+                <p className="text-xs text-text-subtle">recently opened</p>
               </div>
               <div>
                 <p className="text-2xl font-bold font-mono text-text">
@@ -367,7 +401,7 @@ export default async function BlockDetailPage({
       <footer className="border-t border-border py-6 mt-8">
         <div className="max-w-3xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span className="text-[10px] font-mono text-text-subtle tracking-wide">
-            BlockScore NYC
+            BlockScore NYC · Sample data
           </span>
           <span className="text-[10px] font-mono text-text-subtle">
             Built by Michael Pyon
