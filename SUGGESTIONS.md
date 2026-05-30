@@ -50,10 +50,16 @@ pre-fix build. Evidence captured this pass:
 So all of the prior pass fixes plus this pass land at the next flush.
 This is a deploy item to flag, not something to re-fix in code.
 
-Note: metadataBase is pinned to nyc-blockscore-app.vercel.app while the
-canonical live host is nyc-blockscore.vercel.app. Worth confirming which
-alias is canonical before the next deploy so OG and canonical URLs match
-the host people actually land on.
+Host note RESOLVED (wave 2, 2026-05-30): curled both candidate hosts with
+a Twitterbot user agent. nyc-blockscore-app.vercel.app serves THIS app
+(Next.js 16, title "BlockScore: NYC Block Intelligence", x-nextjs-prerender,
+the HEAD copy). nyc-blockscore.vercel.app serves an OLD unrelated Vite
+build (client hydrated empty body, /assets/index-*.js, the em dash title).
+So metadataBase and og:url are already pinned to the correct host that
+actually serves the app. The earlier guess that the bare host was canonical
+was wrong. No URL change made, changing it would have pointed OG at the old
+app. The block detail page uses relative OG urls resolved against
+metadataBase, so it inherits the correct host too.
 
 ## 10-star version (5 perspectives)
 
@@ -108,7 +114,24 @@ the host people actually land on.
    sparkline next to each dimension number so trend becomes visible at
    a glance, not just a word.
 
-## What shipped this pass (2026-05-30)
+## Shipped wave 2 (2026-05-30)
+
+Copy share link button on the compare verdict card
+(src/app/compare/page.tsx). The evangelist job is a side by side with a one
+line verdict pasted into a group chat, but the only way to grab the link was
+the browser address bar. The button copies the verdict one liner plus the
+live compare URL as a single paste ready sentence, so the message reads well
+even before a link preview renders. Pure client, additive, no data or claims
+changed. Degrades cleanly: uses navigator.clipboard when available, falls
+back to a hidden textarea copy, and stays idle if the clipboard is blocked.
+Shows a transient "Copied to clipboard" confirmation. Build verified
+(next build, compiled clean, TypeScript passed, 109 pages generated).
+
+Also resolved the flagged canonical host question via curl (see Host note
+RESOLVED above): the metadataBase and og:url were already aligned to the
+host that serves this app, so no URL change was needed.
+
+## What shipped pass 1 (2026-05-30)
 
 Item 7: compare selection now persists across reloads via localStorage
 (src/components/BlockGrid.tsx). Pure additive client state; no schema,

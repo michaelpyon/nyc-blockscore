@@ -91,6 +91,7 @@ function CompareContent() {
   const blockIds = blocksParam.split(",").filter(Boolean);
   const [blocks, setBlocks] = useState<BlockDetail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const ids = blocksParam.split(",").filter(Boolean);
@@ -128,6 +129,34 @@ function CompareContent() {
   ];
 
   const verdict = getVerdict(blocks);
+
+  // Build the paste ready share text: the one line verdict followed by the
+  // live URL, so a group chat paste reads as a sentence even before any
+  // link preview renders.
+  async function copyShareLink() {
+    if (typeof window === "undefined") return;
+    const url = window.location.href;
+    const text = verdict ? `${verdict.rationale} ${url}` : url;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Older or non secure context fallback: a hidden textarea + execCommand.
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard blocked: leave the button idle rather than throwing.
+    }
+  }
 
   return (
     <div className="min-h-screen bg-bg">
@@ -226,6 +255,32 @@ function CompareContent() {
                 <p className="text-sm text-text-muted leading-relaxed">
                   {verdict.rationale}
                 </p>
+                <button
+                  type="button"
+                  onClick={copyShareLink}
+                  aria-live="polite"
+                  className="mt-4 inline-flex items-center gap-2 min-h-[44px] px-3.5 py-2 bg-bg-surface-high text-text-muted hover:bg-bg-surface-hover hover:text-text transition-colors text-sm font-medium"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    {copied ? (
+                      <polyline points="20 6 9 17 4 12" />
+                    ) : (
+                      <>
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </>
+                    )}
+                  </svg>
+                  {copied ? "Copied to clipboard" : "Copy share link"}
+                </button>
                 <p className="text-[10px] text-text-subtle mt-2">
                   Based on sample data, not live civic measurements.
                 </p>
