@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getScoreColor, getScoreLabel } from "@/types";
 import type { BlockSummary, ScoreDimension } from "@/types";
@@ -22,9 +22,48 @@ const DIMENSION_ACCENTS: Record<string, string> = {
 // about. The "All" option restores the full list. Selection state is kept
 // across filter changes so a renter can build a compare set from multiple
 // neighborhoods without losing picks.
+//
+// Selection also survives a page reload via localStorage. Apartment hunting
+// runs over days, so a renter who tabs away or refreshes should not lose the
+// compare set they were assembling. Only ids that still exist in the current
+// block set are restored, so a stale id can never break the compare link.
+const STORAGE_KEY = "blockscore.compare.selected";
+
 export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [neighborhood, setNeighborhood] = useState<string>("All");
+
+  // Restore a saved selection on first mount, filtered to ids that still exist.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return;
+      const valid = new Set(blocks.map((b) => b.id));
+      const restored = parsed.filter(
+        (x): x is string => typeof x === "string" && valid.has(x)
+      );
+      if (restored.length > 0) setSelected(restored);
+    } catch {
+      // Ignore unreadable or malformed storage; start with an empty selection.
+    }
+    // Run once on mount; blocks is stable for a given render of the home page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist the selection whenever it changes so a reload keeps the picks.
+  useEffect(() => {
+    try {
+      if (selected.length > 0) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(selected));
+      } else {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch {
+      // Storage can be unavailable in private mode; selection still works in memory.
+    }
+  }, [selected]);
 
   function toggle(id: string) {
     setSelected((prev) =>

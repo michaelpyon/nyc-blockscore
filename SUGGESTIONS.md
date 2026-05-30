@@ -21,18 +21,39 @@ chat. The 5 second bounce kills it if the page looks like a generic
 real estate index, if every block looks the same, or if the data feels
 made up without saying so.
 
-## Ground truth (live site)
+## Ground truth (repo HEAD + live check, pass 2026-05-30)
 
-WebFetch was blocked in this session, so live ground truth was not
-re-verified in this pass. The prior pass verified the site loads, the
-compare route works end to end via the new /api/blocks route, every
-detail page carries an unmissable sample-data banner, and a bad block id
-returns the friendly 404 instead of crashing. Source state matches
-those fixes (banner copy, dynamicParams + try/catch + notFound on the
-detail route, the api/blocks/route.ts file). No false source claims are
-made anywhere in the code: nothing is labeled Census, OSM, or live. The
-metadata host is pinned to nyc-blockscore-app.vercel.app which is the
-known good alias.
+Repo HEAD is honest and crash-safe. Confirmed in source:
+
+- No fabrication: no Math.random score generators, no example.com
+  links, no "updated daily" or "real-time" or "as of" stale-date
+  claims. The only "311 / dob / dohmh" strings are a CHECK constraint in
+  the unused db schema, not a user-facing source claim.
+- Every surface that shows numbers carries an unmissable sample-data
+  disclosure: the detail page banner ("illustrative and not live civic
+  measurements, do not use them to evaluate a real address"), the home
+  chip and methodology card, and the compare chip plus the verdict note.
+- Bad block id resolves to a friendly 404 (dynamicParams plus try/catch
+  plus notFound on the detail route).
+- Compare works end to end via /api/blocks; the empty state offers a
+  pre-filled sample comparison so the route is never a dead end.
+
+LIVE IS STALE, deploy needed. The live URL still serves the OLD
+pre-fix build. Evidence captured this pass:
+
+- Live <title> is "BlockScore — NYC Apartment Hunting Intelligence"
+  (note the em dash) while HEAD ships "BlockScore: NYC Block
+  Intelligence". The live title is the old copy.
+- Live GET /block/nonexistent-block-xyz returns HTTP 200, not the 404
+  that HEAD now returns. The crash-to-404 fix is in HEAD only.
+
+So all of the prior pass fixes plus this pass land at the next flush.
+This is a deploy item to flag, not something to re-fix in code.
+
+Note: metadataBase is pinned to nyc-blockscore-app.vercel.app while the
+canonical live host is nyc-blockscore.vercel.app. Worth confirming which
+alias is canonical before the next deploy so OG and canonical URLs match
+the host people actually land on.
 
 ## 10-star version (5 perspectives)
 
@@ -77,18 +98,27 @@ known good alias.
 6. **Per-compare OG card (M, deploy Y)** — render a 2-up scorecard PNG
    at /compare/opengraph-image so the Reddit and iMessage previews
    show the verdict not the generic splash.
-7. **Persist compare selection across reloads (S, deploy Y)** —
-   localStorage backed list of selected ids on the home page so a
-   refresh does not clobber a comparison set in progress.
+7. **Persist compare selection across reloads (S, deploy Y)** — DONE
+   this pass. Files: src/components/BlockGrid.tsx. The selected ids now
+   save to localStorage and restore on mount, filtered to ids that still
+   exist so a stale id can never break the compare link. Apartment
+   hunting runs over days, so a refresh or a tab-away no longer clobbers
+   a compare set in progress.
 8. **Sparkline per dimension (M, deploy Y)** — small 12 month series
    sparkline next to each dimension number so trend becomes visible at
    a glance, not just a word.
 
-## What shipped this pass
+## What shipped this pass (2026-05-30)
 
-Top safe wins from the prioritized list (1, 2, 3). Pure additive UI; no
-schema, no data, no claims changed. Build verified locally; commit
-pushed to origin/main. No deploys (per guardrail).
+Item 7: compare selection now persists across reloads via localStorage
+(src/components/BlockGrid.tsx). Pure additive client state; no schema,
+no data, no claims changed; degrades cleanly if storage is unavailable.
+Build verified locally (next build, compiled clean). Commit pushed to
+origin/main. No deploys (per guardrail).
+
+The prior pass shipped items 1, 2, 3 (neighborhood filter, methodology
+strip, compare worked example). Those plus this change are all waiting
+on the next deploy, since live still serves the old build.
 
 ## Bigger bets that need Michael
 
