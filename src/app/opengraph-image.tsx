@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "BlockScore: NYC Block Intelligence";
+export const alt = "BlockScore: compare curated sample NYC blocks";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -14,7 +14,7 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#0a0e14",
+          background: "#0b0e12",
           padding: "72px",
           fontFamily: "sans-serif",
         }}
@@ -24,51 +24,53 @@ export default function OpengraphImage() {
             style={{
               fontSize: 30,
               letterSpacing: 6,
-              color: "#4ade80",
+              color: "#60a5fa",
               textTransform: "uppercase",
             }}
           >
-            NYC Block Intelligence
+            BlockScore NYC
           </div>
           <div
             style={{
+              display: "flex",
+              flexDirection: "column",
               fontSize: 130,
               fontWeight: 700,
-              color: "#ffffff",
+              color: "#f1f5f7",
               marginTop: 18,
               lineHeight: 1,
             }}
           >
-            BlockScore
+            The 11pm walk-by,
+            <br />
+            without leaving bed.
           </div>
           <div
             style={{
               fontSize: 38,
-              color: "#9ca3af",
+              color: "#bdc8d4",
               marginTop: 28,
               maxWidth: 900,
             }}
           >
-            Score any block before you sign the lease.
+            Compare finalist blocks. Get a winner and the receipt that broke the tie.
           </div>
         </div>
-        <div style={{ display: "flex", gap: 16 }}>
-          {["Noise", "Transit", "Food", "Walkability", "Construction"].map(
-            (t) => (
-              <div
-                key={t}
-                style={{
-                  fontSize: 26,
-                  color: "#cbd5e1",
-                  border: "2px solid #1f2933",
-                  borderRadius: 10,
-                  padding: "12px 22px",
-                }}
-              >
-                {t}
-              </div>
-            )
-          )}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderTop: "2px solid #25313d",
+            paddingTop: 28,
+          }}
+        >
+          <div style={{ display: "flex", gap: 28, fontSize: 24, color: "#bdc8d4" }}>
+            <span>Noise</span><span>Transit</span><span>Food</span><span>Walk</span><span>Build</span>
+          </div>
+          <div style={{ display: "flex", fontSize: 22, color: "#8996a5" }}>
+            51 curated sample blocks · Built by Michael Pyon
+          </div>
         </div>
       </div>
     ),

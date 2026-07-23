@@ -104,7 +104,7 @@ export default async function BlockDetailPage({
   ];
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-[100dvh] bg-bg">
       <header className="border-b border-border bg-bg-surface sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link
@@ -131,7 +131,7 @@ export default async function BlockDetailPage({
             </p>
           </div>
           <div
-            className="score-badge shrink-0 w-12 h-12 flex items-center justify-center text-white text-lg"
+            className="score-badge shrink-0 w-12 h-12 flex items-center justify-center text-text text-lg"
             style={{ backgroundColor: getScoreColor(block.blockScore) }}
           >
             {block.blockScore ?? "--"}
@@ -413,7 +413,7 @@ export default async function BlockDetailPage({
                       {station.lines.map((line) => (
                         <span
                           key={line}
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                          className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-text"
                           style={{
                             backgroundColor:
                               SUBWAY_LINES[line] || "#808183",

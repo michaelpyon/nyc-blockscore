@@ -18,7 +18,7 @@ const DIMENSION_ACCENTS: Record<string, string> = {
 // without triggering navigation. A sticky bar links to the compare page with
 // the chosen ids.
 //
-// The neighborhood filter narrows 52 sample blocks to the area a visitor cares
+// The neighborhood filter narrows the sample set to the area a visitor cares
 // about. The "All" option restores the full list. Selection state is kept
 // across filter changes so a renter can build a compare set from multiple
 // neighborhoods without losing picks.
@@ -81,117 +81,139 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
       : blocks.filter((b) => b.neighborhood === neighborhood);
 
   const compareHref = `/compare?blocks=${selected.join(",")}`;
+  const selectedBlocks = selected
+    .map((id) => blocks.find((block) => block.id === id))
+    .filter((block): block is BlockSummary => Boolean(block));
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <label
-          htmlFor="neighborhood-filter"
-          className="text-xs font-medium uppercase tracking-wider text-text-subtle"
-        >
-          Neighborhood
-        </label>
-        <select
-          id="neighborhood-filter"
-          value={neighborhood}
-          onChange={(e) => setNeighborhood(e.target.value)}
-          className="text-xs px-3 py-2 min-h-[44px] bg-bg-surface-high border border-border text-text hover:border-border-hover focus:outline-none focus:border-accent transition-colors"
-        >
-          <option value="All">All ({blocks.length})</option>
-          {neighborhoods.map((n) => {
-            const count = blocks.filter((b) => b.neighborhood === n).length;
-            return (
-              <option key={n} value={n}>
-                {n} ({count})
-              </option>
-            );
-          })}
-        </select>
+      <div className="mb-5 flex flex-wrap items-end gap-3">
+        <div className="grid gap-1.5">
+          <label
+            htmlFor="neighborhood-filter"
+            className="text-[11px] font-mono text-text-muted"
+          >
+            NEIGHBORHOOD
+          </label>
+          <select
+            id="neighborhood-filter"
+            value={neighborhood}
+            onChange={(e) => setNeighborhood(e.target.value)}
+            className="text-sm px-3 py-2 min-h-[44px] min-w-52 bg-bg-surface border border-border text-text hover:border-border-hover focus:outline-none focus:border-accent transition-colors"
+          >
+            <option value="All">All ({blocks.length})</option>
+            {neighborhoods.map((n) => {
+              const count = blocks.filter((b) => b.neighborhood === n).length;
+              return (
+                <option key={n} value={n}>
+                  {n} ({count})
+                </option>
+              );
+            })}
+          </select>
+        </div>
         {neighborhood !== "All" && (
           <button
             type="button"
             onClick={() => setNeighborhood("All")}
-            className="text-xs text-text-muted hover:text-text min-h-[44px] px-2"
+            className="text-sm text-text-muted hover:text-text min-h-[44px] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            Clear
+            Clear filter
           </button>
         )}
-        <span className="ml-auto text-xs text-text-subtle">
-          {visible.length} {visible.length === 1 ? "block" : "blocks"}
+        <span className="ml-auto pb-3 text-xs font-mono text-text-muted">
+          {visible.length} {visible.length === 1 ? "BLOCK" : "BLOCKS"}
         </span>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="hidden lg:grid grid-cols-[minmax(13rem,1.4fr)_minmax(7rem,0.7fr)_minmax(19rem,1.4fr)_5rem_7rem] gap-4 border-y border-border px-4 py-3 text-[10px] font-mono text-text-muted">
+        <span>BLOCK</span>
+        <span>AREA</span>
+        <span>NOISE · TRANSIT · FOOD · WALK · BUILD</span>
+        <span className="text-right">SCORE</span>
+        <span className="text-right">PICK</span>
+      </div>
+
+      <div className="divide-y divide-border border-b border-border">
         {visible.length === 0 && (
-          <div className="col-span-full text-center py-12 text-text-subtle text-sm">
+          <div className="py-12 text-text-muted text-sm">
             No sample blocks in {neighborhood}.
           </div>
         )}
         {visible.map((block) => {
           const isSelected = selected.includes(block.id);
           return (
-            <div
+            <article
               key={block.id}
-              className={`relative bg-bg-surface border transition-colors ${
-                isSelected ? "border-accent" : "border-border hover:border-border-hover"
+              className={`relative grid gap-3 px-3 sm:px-4 py-4 transition-colors lg:grid-cols-[minmax(13rem,1.4fr)_minmax(7rem,0.7fr)_minmax(19rem,1.4fr)_5rem_7rem] lg:items-center lg:gap-4 ${
+                isSelected ? "bg-accent/8" : "hover:bg-bg-surface"
               }`}
             >
               <Link
                 href={`/block/${block.id}`}
-                className="group block p-4 pb-2"
+                className="group min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="min-w-0 flex-1 pr-2">
-                    <p className="text-sm font-medium truncate text-text">
-                      {block.streetName}
-                    </p>
-                    <p className="text-xs text-text-subtle truncate">
-                      {block.fromCross} to {block.toCross}
-                    </p>
-                  </div>
-                  <div
-                    className="score-badge shrink-0 w-10 h-10 flex items-center justify-center text-white text-sm"
-                    style={{
-                      backgroundColor: getScoreColor(block.blockScore),
-                    }}
-                  >
-                    {block.blockScore ?? "--"}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-text-muted">
-                  <span>{block.neighborhood}</span>
-                  <span className="text-text-subtle">|</span>
-                  <span>{getScoreLabel(block.blockScore)}</span>
-                </div>
-                {block.scores && (
-                  <div className="mt-3 grid grid-cols-5 gap-1">
-                    {(
-                      [
-                        "noise",
-                        "transit",
-                        "food",
-                        "walk",
-                        "construction",
-                      ] as const
-                    ).map((dim: ScoreDimension) => {
-                      const s = block.scores[dim] ?? null;
-                      return (
-                        <div key={dim} className="text-center">
-                          <div
-                            className="text-[10px] font-bold font-mono"
-                            style={{ color: DIMENSION_ACCENTS[dim] }}
-                          >
-                            {s ?? "--"}
-                          </div>
-                          <div className="text-[9px] text-text-subtle capitalize">
-                            {dim === "walk" ? "walk" : dim.slice(0, 5)}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <p className="text-base font-semibold truncate text-text group-hover:text-accent-hover transition-colors">
+                  {block.streetName}
+                </p>
+                <p className="text-xs text-text-muted truncate">
+                  {block.fromCross} to {block.toCross}
+                </p>
               </Link>
+
+              <div className="flex items-center gap-2 text-xs text-text-muted lg:block">
+                <span>{block.neighborhood}</span>
+                <span className="text-border-hover lg:hidden">/</span>
+                <span className="lg:block lg:mt-0.5 text-text-subtle">
+                  {getScoreLabel(block.blockScore)}
+                </span>
+              </div>
+
+              {block.scores && (
+                <div className="grid grid-cols-5 gap-2" aria-label="Dimension scores">
+                  {(
+                    [
+                      "noise",
+                      "transit",
+                      "food",
+                      "walk",
+                      "construction",
+                    ] as const
+                  ).map((dim: ScoreDimension) => {
+                    const s = block.scores[dim] ?? null;
+                    return (
+                      <div key={dim} className="min-w-0">
+                        <div
+                          className="text-xs font-bold font-mono tabular-nums"
+                          style={{ color: DIMENSION_ACCENTS[dim] }}
+                        >
+                          {s ?? "--"}
+                        </div>
+                        <div className="mt-1 h-px bg-bg-surface-high overflow-hidden">
+                          <div
+                            className="h-full origin-left"
+                            style={{
+                              width: `${s ?? 0}%`,
+                              backgroundColor: DIMENSION_ACCENTS[dim],
+                            }}
+                          />
+                        </div>
+                        <div className="mt-1 text-[9px] font-mono text-text-subtle uppercase lg:hidden">
+                          {dim === "construction" ? "build" : dim === "walk" ? "walk" : dim}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div
+                className="score-badge absolute right-3 top-4 lg:static lg:text-right text-xl font-mono tabular-nums"
+                style={{ color: getScoreColor(block.blockScore) }}
+              >
+                {block.blockScore ?? "--"}
+              </div>
+
               <button
                 type="button"
                 onClick={() => toggle(block.id)}
@@ -201,49 +223,34 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
                     ? `Remove ${block.streetName} from compare`
                     : `Add ${block.streetName} to compare`
                 }
-                className={`w-full min-h-[44px] px-4 flex items-center gap-2 text-xs font-medium border-t transition-colors ${
+                className={`min-h-[44px] px-3 inline-flex items-center justify-center gap-2 text-xs font-medium border transition-colors lg:justify-self-end lg:w-24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                   isSelected
-                    ? "border-accent text-accent"
-                    : "border-border text-text-muted hover:text-text"
+                    ? "border-accent bg-accent text-bg"
+                    : "border-border text-text-muted hover:border-border-hover hover:text-text"
                 }`}
               >
-                <span
-                  className={`w-4 h-4 shrink-0 rounded-sm border flex items-center justify-center ${
-                    isSelected ? "border-accent bg-accent" : "border-border-hover"
-                  }`}
-                  aria-hidden="true"
-                >
-                  {isSelected && (
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#0a0e14"
-                      strokeWidth="3"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                </span>
-                {isSelected ? "Selected for compare" : "Compare"}
+                <span aria-hidden="true">{isSelected ? "✓" : "+"}</span>
+                {isSelected ? "Picked" : "Compare"}
               </button>
-            </div>
+            </article>
           );
         })}
       </div>
 
       {selected.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-bg-surface">
-          <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="text-sm font-medium text-text">
-                {selected.length} selected
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-bg-surface/98">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+            <div className="min-w-0 flex items-center gap-2 sm:block">
+              <span className="text-sm font-semibold text-text">
+                {selected.length} {selected.length === 1 ? "block" : "blocks"} picked
               </span>
+              <p className="hidden sm:block mt-0.5 text-xs text-text-muted truncate max-w-xl">
+                {selectedBlocks.map((block) => block.streetName).join(" · ")}
+              </p>
               <button
                 type="button"
                 onClick={() => setSelected([])}
-                className="text-xs text-text-muted hover:text-text min-h-[44px] px-2"
+                className="sm:hidden text-xs text-text-muted hover:text-text min-h-[32px]"
               >
                 Clear
               </button>
@@ -251,9 +258,9 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
             {selected.length >= 2 ? (
               <Link
                 href={compareHref}
-                className="inline-flex items-center min-h-[44px] px-5 bg-accent text-bg font-medium text-sm hover:bg-accent-hover transition-colors"
+                className="inline-flex items-center min-h-[44px] px-5 bg-accent text-bg font-semibold text-sm hover:bg-accent-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text"
               >
-                Compare ({selected.length})
+                Get the verdict ({selected.length})
               </Link>
             ) : (
               <span className="text-xs text-text-subtle">

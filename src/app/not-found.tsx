@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-bg flex flex-col">
+    <div className="min-h-[100dvh] bg-bg flex flex-col">
       <header className="border-b border-border bg-bg-surface">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <Link

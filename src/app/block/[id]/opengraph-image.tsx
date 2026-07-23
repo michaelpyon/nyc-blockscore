@@ -57,7 +57,7 @@ export default async function BlockOpengraphImage({
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#0a0e14",
+          background: "#0b0e12",
           padding: "64px 72px",
           fontFamily: "sans-serif",
         }}
@@ -74,7 +74,7 @@ export default async function BlockOpengraphImage({
               style={{
                 fontSize: 26,
                 letterSpacing: 5,
-                color: "#4ade80",
+              color: "#60a5fa",
                 textTransform: "uppercase",
               }}
             >
@@ -84,7 +84,7 @@ export default async function BlockOpengraphImage({
               style={{
                 fontSize: 78,
                 fontWeight: 700,
-                color: "#ffffff",
+                color: "#f1f5f7",
                 marginTop: 14,
                 lineHeight: 1.05,
                 maxWidth: 760,
@@ -137,7 +137,7 @@ export default async function BlockOpengraphImage({
                   flexDirection: "column",
                   flex: 1,
                   border: "2px solid #1f2933",
-                  borderRadius: 12,
+                  borderRadius: 0,
                   padding: "18px 20px",
                 }}
               >

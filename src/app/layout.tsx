@@ -15,21 +15,21 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nyc-blockscore-app.vercel.app"),
-  title: "BlockScore: NYC Block Intelligence",
+  title: "BlockScore: Compare NYC blocks",
   description:
-    "Block-level scores across noise, transit, food, walkability, and construction for Brooklyn and Manhattan.",
+    "Compare 51 curated sample NYC blocks across noise, transit, food, walkability, and construction, then get a verdict.",
   openGraph: {
     type: "website",
-    title: "BlockScore: NYC Block Intelligence",
+    title: "BlockScore: The 11pm walk-by, without leaving bed",
     description:
-      "Score any NYC block on noise, transit, food, walkability, and construction before you sign the lease.",
+      "Compare 51 curated sample NYC blocks, get a winner, and see the receipt that broke the tie.",
     url: "https://nyc-blockscore-app.vercel.app",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BlockScore: NYC Block Intelligence",
+    title: "BlockScore: The 11pm walk-by, without leaving bed",
     description:
-      "Score any NYC block on noise, transit, food, walkability, and construction before you sign the lease.",
+      "Compare 51 curated sample NYC blocks, get a winner, and see the receipt that broke the tie.",
   },
 };
 
