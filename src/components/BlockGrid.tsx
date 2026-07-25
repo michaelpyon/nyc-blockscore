@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getScoreColor, getScoreLabel } from "@/types";
 import type { BlockSummary, ScoreDimension } from "@/types";
+import { MAX_COMPARE_BLOCKS } from "@/lib/verdict";
 
 const DIMENSION_ACCENTS: Record<string, string> = {
   noise: "var(--accent-noise)",
@@ -27,6 +28,10 @@ const DIMENSION_ACCENTS: Record<string, string> = {
 // runs over days, so a renter who tabs away or refreshes should not lose the
 // compare set they were assembling. Only ids that still exist in the current
 // block set are restored, so a stale id can never break the compare link.
+//
+// The picker holds at MAX_COMPARE_BLOCKS. The product promises a 2 or 3 block
+// verdict everywhere it speaks, so a fourth pick is refused rather than
+// quietly widening the comparison past what the copy claims.
 const STORAGE_KEY = "blockscore.compare.selected";
 
 export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
@@ -41,9 +46,9 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return;
       const valid = new Set(blocks.map((b) => b.id));
-      const restored = parsed.filter(
-        (x): x is string => typeof x === "string" && valid.has(x)
-      );
+      const restored = parsed
+        .filter((x): x is string => typeof x === "string" && valid.has(x))
+        .slice(0, MAX_COMPARE_BLOCKS);
       if (restored.length > 0) setSelected(restored);
     } catch {
       // Ignore unreadable or malformed storage; start with an empty selection.
@@ -66,9 +71,11 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
   }, [selected]);
 
   function toggle(id: string) {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelected((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= MAX_COMPARE_BLOCKS) return prev;
+      return [...prev, id];
+    });
   }
 
   const neighborhoods = Array.from(
@@ -84,6 +91,7 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
   const selectedBlocks = selected
     .map((id) => blocks.find((block) => block.id === id))
     .filter((block): block is BlockSummary => Boolean(block));
+  const atLimit = selected.length >= MAX_COMPARE_BLOCKS;
 
   return (
     <>
@@ -142,6 +150,9 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
         )}
         {visible.map((block) => {
           const isSelected = selected.includes(block.id);
+          // At the cap an unpicked block stays visible and readable but cannot
+          // be added, so the picker can never build a set the verdict refuses.
+          const isLockedOut = atLimit && !isSelected;
           return (
             <article
               key={block.id}
@@ -218,6 +229,8 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
                 type="button"
                 onClick={() => toggle(block.id)}
                 aria-pressed={isSelected}
+                aria-disabled={isLockedOut || undefined}
+                aria-describedby={isLockedOut ? "compare-limit-note" : undefined}
                 aria-label={
                   isSelected
                     ? `Remove ${block.streetName} from compare`
@@ -226,7 +239,9 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
                 className={`min-h-[44px] px-3 inline-flex items-center justify-center gap-2 text-xs font-medium border transition-colors lg:justify-self-end lg:w-24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                   isSelected
                     ? "border-accent bg-accent text-bg"
-                    : "border-border text-text-muted hover:border-border-hover hover:text-text"
+                    : isLockedOut
+                      ? "border-border/60 text-text-subtle cursor-not-allowed"
+                      : "border-border text-text-muted hover:border-border-hover hover:text-text"
                 }`}
               >
                 <span aria-hidden="true">{isSelected ? "✓" : "+"}</span>
@@ -240,13 +255,21 @@ export default function BlockGrid({ blocks }: { blocks: BlockSummary[] }) {
       {selected.length > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-bg-surface/98">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-            <div className="min-w-0 flex items-center gap-2 sm:block">
+            <div className="min-w-0 flex flex-wrap items-center gap-x-2 sm:block">
               <span className="text-sm font-semibold text-text">
                 {selected.length} {selected.length === 1 ? "block" : "blocks"} picked
               </span>
               <p className="hidden sm:block mt-0.5 text-xs text-text-muted truncate max-w-xl">
                 {selectedBlocks.map((block) => block.streetName).join(" · ")}
               </p>
+              {atLimit && (
+                <p
+                  id="compare-limit-note"
+                  className="order-last basis-full mt-0.5 text-xs text-text-subtle"
+                >
+                  Max {MAX_COMPARE_BLOCKS} blocks. Remove one to swap.
+                </p>
+              )}
               <button
                 type="button"
                 onClick={() => setSelected([])}

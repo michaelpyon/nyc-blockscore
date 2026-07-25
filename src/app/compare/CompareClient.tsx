@@ -15,7 +15,13 @@ const DIMENSION_ACCENTS: Record<ScoreDimension, string> = {
   construction: "var(--accent-construction)",
 };
 
-export default function CompareClient({ blocks }: { blocks: BlockDetail[] }) {
+export default function CompareClient({
+  blocks,
+  truncatedTo = null,
+}: {
+  blocks: BlockDetail[];
+  truncatedTo?: number | null;
+}) {
   const [copied, setCopied] = useState(false);
 
   const dimensions: ScoreDimension[] = [
@@ -91,6 +97,16 @@ export default function CompareClient({ blocks }: { blocks: BlockDetail[] }) {
             SAMPLE DATA · NOT LIVE CIVIC DATA
           </span>
         </div>
+        {truncatedTo !== null && (
+          <p
+            role="status"
+            className="mb-6 border-l-2 border-border-hover pl-3 text-sm text-text-muted"
+          >
+            That link asked for more than {truncatedTo} blocks. BlockScore
+            compares {truncatedTo} at a time, so only the first {truncatedTo}{" "}
+            are shown below.
+          </p>
+        )}
         {blocks.length === 0 ? (
           <div className="max-w-2xl border-y border-border py-12 sm:py-16">
             <p className="text-xl font-semibold text-text mb-2">

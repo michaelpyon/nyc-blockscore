@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { getBlockDetail } from "@/lib/blocks";
-import { getVerdict, parseCompareIds } from "@/lib/verdict";
+import {
+  compareRequestExceedsLimit,
+  getVerdict,
+  MAX_COMPARE_BLOCKS,
+  parseCompareIds,
+} from "@/lib/verdict";
 import type { BlockDetail } from "@/types";
 import CompareClient from "./CompareClient";
 
@@ -69,5 +74,16 @@ export default async function ComparePage({
   const fetched = await Promise.all(ids.map((id) => getBlockDetail(id)));
   const blocks = fetched.filter((block): block is BlockDetail => block !== null);
 
-  return <CompareClient blocks={blocks} />;
+  // A hand-edited or stale link can ask for more than the product compares.
+  // The page keeps the first few and says so instead of dropping one quietly.
+  return (
+    <CompareClient
+      blocks={blocks}
+      truncatedTo={
+        compareRequestExceedsLimit(blocksParam ?? null)
+          ? MAX_COMPARE_BLOCKS
+          : null
+      }
+    />
+  );
 }

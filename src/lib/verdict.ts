@@ -70,9 +70,15 @@ export function getVerdict(blocks: BlockDetail[]): Verdict | null {
   };
 }
 
-// Parse the compare query string into a clean, de-duplicated id list, capped
-// so a malicious or accidental long query cannot blow up an OG render.
-export function parseCompareIds(blocksParam: string | null): string[] {
+// The product promises a 2 or 3 block comparison on the home page, the compare
+// empty state, and the social card. This is the single place that number lives,
+// so the picker and the URL parser can never drift from the copy again.
+export const MAX_COMPARE_BLOCKS = 3;
+
+// De-duplicate the compare query string, reading at most one id past the limit
+// so an over-long or malicious query cannot blow up an OG render but an
+// overflow is still detectable.
+function dedupeCompareIds(blocksParam: string | null): string[] {
   if (!blocksParam) return [];
   const seen = new Set<string>();
   const out: string[] = [];
@@ -82,7 +88,19 @@ export function parseCompareIds(blocksParam: string | null): string[] {
       seen.add(id);
       out.push(id);
     }
-    if (out.length >= 4) break;
+    if (out.length > MAX_COMPARE_BLOCKS) break;
   }
   return out;
+}
+
+// Parse the compare query string into a clean, de-duplicated id list, capped at
+// the promised maximum.
+export function parseCompareIds(blocksParam: string | null): string[] {
+  return dedupeCompareIds(blocksParam).slice(0, MAX_COMPARE_BLOCKS);
+}
+
+// True when a hand-edited or stale link asked for more blocks than the product
+// compares. The compare page says so rather than silently dropping a block.
+export function compareRequestExceedsLimit(blocksParam: string | null): boolean {
+  return dedupeCompareIds(blocksParam).length > MAX_COMPARE_BLOCKS;
 }
