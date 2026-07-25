@@ -21,6 +21,27 @@ cp package.json next.config.ts "$SERVE/"
 cd "$SERVE" && npx next start -p 4103 -H 127.0.0.1
 ```
 
+## Serve read-only for the data-fallback check
+
+`/compare` and `/api/blocks` are dynamic and run on a read-only serverless
+filesystem in production. A writable working directory hides a whole class of
+failure: SQLite will create an empty `local.db` and the route survives locally
+while returning 500 on Vercel. Stage a second copy and take write permission
+away before running `s-data-fallback.mjs`:
+
+```bash
+RO=/tmp/aaa-nyc-blockscore-ro
+chmod -R u+w "$RO" 2>/dev/null; rm -rf "$RO"; mkdir -p "$RO"
+cp -R .next "$RO/.next"
+ln -s "$PWD/node_modules" "$RO/node_modules"
+ln -s "$PWD/public" "$RO/public"
+cp package.json next.config.ts "$RO/"
+chmod -R a-w "$RO"
+cd "$RO" && npx next start -p 4104 -H 127.0.0.1
+```
+
+Leave `TURSO_DATABASE_URL` unset, which is how production runs.
+
 ## Run a scenario
 
 ```bash
@@ -40,3 +61,10 @@ error, and prints a JSON result either way.
 - `s-compare-url-cap.mjs` — a hand-edited 4-id compare link resolves to 3
   columns, discloses that it was trimmed, and titles the page with 3 names. Run
   against `/compare?blocks=<4 ids>`.
+- `s-core-loop.mjs` — the primary job: pick 2 blocks, get a verdict that names
+  a winner and the dimension that broke the tie, with the sample-data
+  disclosure visible throughout. Run against `/`.
+- `s-data-fallback.mjs` — the dynamic routes serve the bundled seed with no
+  libSQL store configured. Must be run against the read-only server above; a
+  writable working directory makes this check meaningless. Run against
+  `/compare?blocks=<2 ids>`.

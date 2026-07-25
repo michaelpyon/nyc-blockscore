@@ -1,13 +1,32 @@
-import { createClient } from "@libsql/client";
+import { createClient, type Client } from "@libsql/client";
 
-// Turso client singleton
-// Falls back to local SQLite file for development
-const db = createClient({
-  url: process.env.TURSO_DATABASE_URL || "file:local.db",
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
+// The 51 scored blocks ship in src/data/seed.ts. A libSQL store is optional and
+// is consulted only when TURSO_DATABASE_URL is configured; every reader in
+// blocks.ts falls back to the bundled seed when it is absent or unreachable.
+//
+// The client is resolved lazily and never at module scope. createClient throws
+// synchronously when it cannot open a local SQLite file, and on a read-only
+// serverless filesystem that took down /compare and /api/blocks with a 500
+// before any caller's fallback could run. Resolution happens once per process
+// and a failure is remembered as "no store" rather than retried per request.
+let resolved: Client | null | undefined;
 
-export default db;
+export function getDb(): Client | null {
+  if (resolved !== undefined) return resolved;
+
+  const url = process.env.TURSO_DATABASE_URL;
+  if (!url) {
+    resolved = null;
+    return resolved;
+  }
+
+  try {
+    resolved = createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN });
+  } catch {
+    resolved = null;
+  }
+  return resolved;
+}
 
 // Schema creation for initial setup
 export const SCHEMA = `
@@ -72,6 +91,13 @@ CREATE INDEX IF NOT EXISTS idx_blocks_borough ON blocks(borough);
 `;
 
 export async function initializeDatabase(): Promise<void> {
+  const db = getDb();
+  if (!db) {
+    throw new Error(
+      "No libSQL store configured. Set TURSO_DATABASE_URL before initializing the schema."
+    );
+  }
+
   const statements = SCHEMA.split(";")
     .map((s) => s.trim())
     .filter((s) => s.length > 0);

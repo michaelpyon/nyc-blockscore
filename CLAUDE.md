@@ -6,6 +6,8 @@ BlockScore helps an NYC renter settle a tie between 2 or 3 finalist blocks. The 
 
 All 51 current blocks are curated sample data from `src/data/seed.ts`. No live 311, DOB, DOHMH, GTFS, StreetEasy, or Census feed is wired. Keep that disclosure visible on every score and social-image surface.
 
+The libSQL store is optional and env-gated. `getDb()` in `src/lib/db.ts` returns a client only when `TURSO_DATABASE_URL` is set, and every reader in `src/lib/blocks.ts` falls back to the seed. Never construct a libSQL client at module scope: `createClient` throws synchronously when it cannot open a local SQLite file, which on Vercel's read-only filesystem returned 500 from `/compare` and `/api/blocks` before any fallback could run.
+
 ## Stack
 
 - Next.js 16.2.11 App Router
@@ -31,7 +33,7 @@ npm audit --omit=dev --audit-level=high
 
 - `/`: scored sample-block index and compare picker
 - `/block/[id]`: one block's score and component details
-- `/compare?blocks=id1,id2`: server-rendered verdict and share action
+- `/compare?blocks=id1,id2`: server-rendered verdict and share action, capped at `MAX_COMPARE_BLOCKS`
 - `/compare/opengraph-image?blocks=id1,id2`: matching dynamic social card
 - `/api/blocks?ids=id1,id2`: public sample-data JSON
 
